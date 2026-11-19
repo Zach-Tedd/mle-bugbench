@@ -1,0 +1,28 @@
+# secrets — never commit
+.env
+*.pickle
+token*.json
+token.pickle
+credentials*.json
+client_secret*.json
+
+# data and artifacts — publish via Hugging Face / releases instead
+data/
+results/
+*.pth
+*.pt
+*.pkl
+*.joblib
+*.onnx
+mlruns/
+wandb/
+
+# python / tooling
+__pycache__/
+.venv/
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+attempts/
