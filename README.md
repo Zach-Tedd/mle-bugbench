@@ -37,8 +37,8 @@ Tasks map to the eight leakage types in Kapoor & Narayanan's taxonomy, so covera
 | L1.2 | Pre-processing on training and test set | [t01_oversample_leak](tasks/t01_oversample_leak) | done |
 | L1.3 | Feature selection on training and test set | planned | |
 | L1.4 | Duplicates in datasets | [t01_oversample_leak](tasks/t01_oversample_leak) | done |
-| L2 | Model uses features that are not legitimate | t02_timeseries_cv_leak | in progress |
-| L3.1 | Temporal leakage | t02_timeseries_cv_leak | in progress |
+| L2 | Model uses features that are not legitimate | [t02_timeseries_cv_leak](tasks/t02_timeseries_cv_leak) | done |
+| L3.1 | Temporal leakage | [t02_timeseries_cv_leak](tasks/t02_timeseries_cv_leak) | done |
 | L3.2 | Non-independence between train and test samples | planned | |
 | L3.3 | Sampling bias in test distribution | planned | |
 
@@ -51,6 +51,7 @@ Beyond leakage, later tasks cover unstable training (NaN loss), irreproducibilit
 | Task | Reference | Buggy starter | Partial fix |
 |---|---|---|---|
 | t01_oversample_leak | 100/100 | 10/100 (reports 0.998 accuracy; leaked PR-AUC 1.000) | caught (fails C1) |
+| t02_timeseries_cv_leak | 100/100 (MAE 5.29) | 40/100 (MAE 4.01, at the noise floor) | caught: centred window and same-day rolling mean both fail C2 |
 
 ### AI assistant evaluation
 
@@ -61,7 +62,7 @@ _Coming once eight tasks are in place:_ pass rates of current AI coding assistan
 ```bash
 make setup
 make validate                                              # every grader vs its reference and starter
-uv run python -m bugbench.runner grade t01 my_solution.py  # grade your own attempt
+uv run python -m bugbench.runner grade t01 my_solution.py  # grade your own attempt (t01, t02, ...)
 make check                                                 # lint, types, tests
 ```
 
