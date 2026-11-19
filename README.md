@@ -40,9 +40,9 @@ Tasks map to the eight leakage types in Kapoor & Narayanan's taxonomy, so covera
 | L2 | Model uses features that are not legitimate | [t02_timeseries_cv_leak](tasks/t02_timeseries_cv_leak) | done |
 | L3.1 | Temporal leakage | [t02_timeseries_cv_leak](tasks/t02_timeseries_cv_leak) | done |
 | L3.2 | Non-independence between train and test samples | [t03_patient_leak](tasks/t03_patient_leak) | done |
-| L3.3 | Sampling bias in test distribution | planned | |
+| L3.3 | Sampling bias in test distribution | [t06_regional_shift](tasks/t06_regional_shift) | done |
 
-Beyond leakage, later tasks cover unstable training (NaN loss), irreproducibility (unseeded data loaders), and performance bottlenecks.
+**All eight leakage types are covered.** Beyond leakage, later tasks will cover unstable training (NaN loss), irreproducibility (unseeded data loaders), and performance bottlenecks.
 
 ## Results
 
@@ -55,10 +55,11 @@ Beyond leakage, later tasks cover unstable training (NaN loss), irreproducibilit
 | t03_patient_leak | 100/100 (ROC-AUC 0.77) | 45/100 (ROC-AUC 0.93; 269 patients in both sets) | caught: last-visit holdout (ROC-AUC 0.96) fails C1 |
 | t04_feature_selection_leak | 100/100 (ROC-AUC 0.73) | 60/100 (ROC-AUC 0.94; **0.92 on random labels**) | caught: constant-score "fix" fails the real-signal floor |
 | t05_test_set_selection | 100/100 (ROC-AUC 0.71) | 60/100 (ROC-AUC 0.74; **0.68 on random labels**) | fair: a second honest method also scores 100/100 |
+| t06_regional_shift | 100/100 (ROC-AUC 0.78) | 50/100 (ROC-AUC 0.97 on Nyeri; 0.69 in new counties) | caught: pooled CV (0.84) and best-2-counties cherry-pick (0.85) |
 
 ### AI assistant evaluation
 
-_Coming once eight tasks are in place:_ pass rates of current AI coding assistants on each task, with a failure analysis of what they missed and why.
+_Next:_ pass rates of current AI coding assistants on all six tasks, with a failure analysis of what they missed and why.
 
 ## Run it
 
