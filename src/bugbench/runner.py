@@ -49,6 +49,7 @@ def main(argv: list[str] | None = None) -> int:
     g = sub.add_parser("grade")
     g.add_argument("task", help="task folder prefix, e.g. t01")
     g.add_argument("solution", type=Path)
+    g.add_argument("--json", action="store_true", help="print the report as one JSON line")
     args = parser.parse_args(argv)
 
     if args.cmd == "validate":
@@ -58,7 +59,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no unique task matching {args.task!r} in {TASKS_DIR}")
         return 2
     report = grade(matches[0], args.solution)
-    print(report.render())
+    print(json.dumps(report.as_dict()) if args.json else report.render())
     return 0 if report.passed else 1
 
 

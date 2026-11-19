@@ -9,3 +9,15 @@ def test_grade_cli_passes_reference() -> None:
 
 def test_grade_cli_rejects_unknown_task() -> None:
     assert main(["grade", "t99", "x.py"]) == 2
+
+
+def test_metric_aliases_accept_equivalent_names() -> None:
+    from bugbench.core import metric_is
+
+    assert metric_is("average_precision", "pr_auc")
+    assert metric_is("AUROC", "roc_auc")
+    assert metric_is("ROC-AUC", "roc_auc")
+    assert metric_is("mean_absolute_error", "mae")
+    assert not metric_is("accuracy", "pr_auc")
+    assert not metric_is("roc_auc", "pr_auc")
+    assert not metric_is(None, "mae")

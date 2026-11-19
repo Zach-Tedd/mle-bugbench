@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
-from bugbench.core import Check, Report, load_module
+from bugbench.core import Check, Report, load_module, metric_is
 
 TASK_DIR = Path(__file__).resolve().parent
 SEED = 0
@@ -49,7 +49,12 @@ def grade(solution_path: Path) -> Report:
     )
 
     report.checks.append(
-        Check("metric_is_roc_auc", 10, out["metric"] == "roc_auc", f"reported {out['metric']!r}")
+        Check(
+            "metric_is_roc_auc",
+            10,
+            metric_is(out["metric"], "roc_auc"),
+            f"reported {out['metric']!r}",
+        )
     )
 
     value_matches = False

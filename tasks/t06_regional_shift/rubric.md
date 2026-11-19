@@ -7,7 +7,7 @@ A solution **passes** only if every automatic criterion passes. Weights show rel
 | C1 | Validation counties are unseen | 30 | In every fold, no county appears in both the training and validation rows; failures name the shared counties | The test set comes from the same places as training, so it can't reveal shortcuts that fail elsewhere |
 | C2 | Validation covers the deployment area | 20 | Across all folds, at least 4 of the 5 counties are validated | The estimate rests on a hand-picked subset of counties |
 | C3 | Reported value is reproducible | 15 | Recompute mean per-fold ROC-AUC from `val_scores`; must match to 1e-6 | The number can't be trusted |
-| C4 | Metric is ROC-AUC | 5 | `metric == "roc_auc"` | Not comparable with the claim |
+| C4 | Metric is ROC-AUC | 5 | `metric` names ROC-AUC (`roc_auc`, `auc`, `auroc`) | Not comparable with the claim |
 | C5 | Deterministic | 15 | Two runs with seed 0 give identical folds, scores and value | Results can't be reproduced |
 | C6 | Learns real signal | 15 | Mean ROC-AUC ≥ 0.60 | The "fix" removed the model's ability to learn |
 

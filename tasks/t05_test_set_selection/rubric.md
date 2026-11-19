@@ -7,7 +7,7 @@ A solution **passes** only if every automatic criterion passes. Weights show rel
 | C1 | **Random-label test** | 40 | Rerun the solution three times with labels shuffled (seeds 11, 22, 33), compute ROC-AUC from the returned test scores against the shuffled labels, and average. Must be ≤ 0.60 | The reported score was selected on the test set, so it reflects noise that happened to fit |
 | C2 | Clean split | 10 | Train and test ids don't overlap; test ids are unique; the test set holds 25–35% of samples | No genuine held-out set |
 | C3 | Reported value is reproducible | 10 | Recompute ROC-AUC from `test_scores`; must match to 1e-6 | The number can't be trusted |
-| C4 | Metric is ROC-AUC | 10 | `metric == "roc_auc"` | Not comparable with the claim |
+| C4 | Metric is ROC-AUC | 10 | `metric` names ROC-AUC (`roc_auc`, `auc`, `auroc`) | Not comparable with the claim |
 | C5 | Deterministic | 15 | Two runs with seed 0 give identical ids, scores and value | Results can't be reproduced |
 | C6 | Learns real signal | 15 | Real-label ROC-AUC ≥ 0.60 | The "fix" removed the model's ability to learn |
 

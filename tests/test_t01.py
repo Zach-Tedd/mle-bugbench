@@ -67,3 +67,11 @@ def test_data_is_deterministic(seed: int) -> None:
 
     data = load_module(TASK / "data.py", "t01_data_test")
     assert data.load_data(seed).equals(data.load_data(seed))
+
+
+@pytest.mark.parametrize("name", ["t01_chatgpt_review.py", "t01_chatgpt_neutral.py"])
+def test_pilot_answers_that_fix_the_leak_score_full_marks(name: str) -> None:
+    """Regression: the first pilot showed the grader rejecting two correct fixes
+    (metric named 'average_precision'; retried duplicates kept together in the test set)."""
+    report = grade(TASK, Path(__file__).parent / "fixtures" / name)
+    assert report.passed and report.score == 100

@@ -59,7 +59,9 @@ Tasks map to the eight leakage types in Kapoor & Narayanan's taxonomy, so covera
 
 ### AI assistant evaluation
 
-_Next:_ pass rates of current AI coding assistants on all six tasks, with a failure analysis of what they missed and why.
+_In progress:_ do AI coding assistants catch these leaks on their own, or only when asked to review? Each assistant gets every task twice, once with a neutral "improve this model" prompt and once with a review prompt. See the [protocol](evals/PROTOCOL.md).
+
+A pilot run on t01 found that the original grader scored two correct fixes 65/100: it insisted on the metric name `pr_auc`, rejected retried duplicates kept inside the test set, and compared positive rates on mismatched bases. All graders now accept equivalent metric names, and both pilot answers are regression tests. Grader fairness was checked before any results were collected.
 
 ## Run it
 
@@ -68,6 +70,8 @@ make setup
 make validate                                              # every grader vs its reference and starter
 uv run python -m bugbench.runner grade t01 my_solution.py  # grade your own attempt (t01, t02, ...)
 make check                                                 # lint, types, tests
+uv run python -m bugbench.prompt t01 neutral                # the exact prompt given to an assistant
+make evaluate                                              # grade saved assistant answers
 ```
 
 ## Limitations

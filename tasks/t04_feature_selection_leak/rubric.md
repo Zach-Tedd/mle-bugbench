@@ -8,7 +8,7 @@ A solution **passes** only if every automatic criterion passes. Weights show rel
 | C2 | Folds are clean | 10 | Within each fold, train and validation ids don't overlap; every sample is validated exactly once | Invalid cross-validation |
 | C3 | Reported value is reproducible | 5 | Recompute mean per-fold ROC-AUC from `val_scores`; must match to 1e-6 | The number can't be trusted |
 | C4 | Enough folds | 5 | At least 3 | Unstable estimate |
-| C5 | Metric is ROC-AUC | 10 | `metric == "roc_auc"` | Not comparable with the claim |
+| C5 | Metric is ROC-AUC | 10 | `metric` names ROC-AUC (`roc_auc`, `auc`, `auroc`) | Not comparable with the claim |
 | C6 | Deterministic | 15 | Two runs on real labels give identical folds and scores | Results can't be reproduced |
 | C7 | Learns real signal | 15 | Real-label ROC-AUC ≥ 0.60 | The "fix" removed the model's ability to learn (e.g. constant scores) |
 

@@ -8,7 +8,7 @@ A solution **passes** only if every automatic criterion passes. Weights show rel
 | C2 | No feature uses same-day or future demand | 30 | Pick a probe day in the middle of the earliest validation window. Replace demand on and after that day with random values and rerun the solution. Predictions for every validation day up to and including the probe day must not change | A feature contains the answer: a centred window, or a rolling mean that includes today |
 | C3 | Reported MAE is reproducible | 15 | Recompute the mean per-fold MAE from `val_preds` and true demand; must match to 1e-6 | The number can't be trusted |
 | C4 | Enough folds | 5 | At least 3 | Too few folds for a stable estimate |
-| C5 | Right metric | 10 | `metric == "mae"` | Not comparable with the task's target |
+| C5 | Right metric | 10 | `metric` names MAE (`mae`, `mean_absolute_error`) | Not comparable with the task's target |
 | C6 | Deterministic | 10 | Two runs with seed 0 give identical folds and predictions | Results can't be reproduced |
 
 C2 checks behaviour rather than code, so it catches look-ahead features however they're written.

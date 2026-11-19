@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
 
-from bugbench.core import Check, Report, load_module
+from bugbench.core import Check, Report, load_module, metric_is
 
 TASK_DIR = Path(__file__).resolve().parent
 SEED = 0
@@ -131,7 +131,7 @@ def grade(solution_path: Path) -> Report:
     )
 
     report.checks.append(
-        Check("metric_is_mae", 10, out["metric"] == "mae", f"reported {out['metric']!r}")
+        Check("metric_is_mae", 10, metric_is(out["metric"], "mae"), f"reported {out['metric']!r}")
     )
 
     deterministic = False

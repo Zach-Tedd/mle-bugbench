@@ -10,6 +10,22 @@ from typing import Any
 
 TASKS_DIR = Path(__file__).resolve().parents[2] / "tasks"
 
+# Equivalent names for the same metric. A grader must not fail a correct solution
+# because it used scikit-learn's name for a metric instead of ours.
+METRIC_ALIASES: dict[str, frozenset[str]] = {
+    "pr_auc": frozenset({"pr_auc", "average_precision", "average_precision_score", "ap", "auprc"}),
+    "roc_auc": frozenset({"roc_auc", "roc_auc_score", "auc", "auroc"}),
+    "mae": frozenset({"mae", "mean_absolute_error"}),
+}
+
+
+def metric_is(reported: object, canonical: str) -> bool:
+    """True if `reported` names the same metric as `canonical` (case, '-' and spaces ignored)."""
+    if not isinstance(reported, str):
+        return False
+    name = reported.strip().lower().replace("-", "_").replace(" ", "_")
+    return name in METRIC_ALIASES.get(canonical, frozenset({canonical}))
+
 
 @dataclass(frozen=True)
 class Check:

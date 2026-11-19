@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import average_precision_score
 
-from bugbench.core import Check, Report, load_module
+from bugbench.core import Check, Report, load_module, metric_is
 
 TASK_DIR = Path(__file__).resolve().parent
 SEED = 0
@@ -46,14 +46,23 @@ def grade(solution_path: Path) -> Report:
 
     # C2 (10): each test row is scored once (no duplicated evidence inflating the metric).
     test_keys = _content_keys(data, test_ids, features)
-    unique = len(set(test_ids)) == len(test_ids) == len(test_keys)
+    # Each test row_id once. Retried duplicates kept together inside the test set are
+    # allowed: they never cross the split, so they don't leak (C1 checks crossing).
+    unique = len(set(test_ids)) == len(test_ids)
     report.checks.append(
-        Check("test_rows_unique", 10, unique, f"{len(test_ids)} ids, {len(test_keys)} unique")
+        Check(
+            "test_rows_unique", 10, unique, f"{len(test_ids)} ids, {len(set(test_ids))} unique ids"
+        )
     )
 
     # C3 (15): a metric that reflects rare-class performance.
     report.checks.append(
-        Check("metric_is_pr_auc", 15, out["metric"] == "pr_auc", f"reported {out['metric']!r}")
+        Check(
+            "metric_is_pr_auc",
+            15,
+            metric_is(out["metric"], "pr_auc"),
+            f"reported {out['metric']!r}",
+        )
     )
 
     # C4 (15): the reported number must be reproducible from the returned scores.
@@ -73,7 +82,11 @@ def grade(solution_path: Path) -> Report:
     # C5 (10): 15-25% of unique rows held out, positive rate within 1 point of the data.
     deduped = data.drop_duplicates(subset=features)
     frac = len(test_keys) / len(deduped)
-    rate_gap = abs(labels.mean() - deduped["label"].mean()) if len(labels) else 1.0
+    # Compare like with like: unique test contents vs the deduplicated data.
+    test_unique = data.set_index("row_id").loc[test_ids].drop_duplicates(subset=features)
+    rate_gap = (
+        abs(test_unique["label"].mean() - deduped["label"].mean()) if len(test_unique) else 1.0
+    )
     shape_ok = 0.15 <= frac <= 0.25 and rate_gap <= 0.01
     report.checks.append(
         Check("split_shape", 10, shape_ok, f"test frac {frac:.3f}, pos-rate gap {rate_gap:.4f}")

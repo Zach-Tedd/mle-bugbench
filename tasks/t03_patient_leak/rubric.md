@@ -6,7 +6,7 @@ A solution **passes** only if every automatic criterion passes. Weights show rel
 |---|---|---|---|---|
 | C1 | No patient appears in both train and test | 40 | Patients behind `train_ids` and `test_ids` must not intersect, and both sets must be non-empty | The model can recognise a patient's "fingerprint" instead of the disease |
 | C2 | Each test row is scored once | 10 | `test_ids` are unique | Duplicated evidence inflates the metric |
-| C3 | Metric is ROC-AUC | 10 | `metric == "roc_auc"` | Not comparable with the reported claim |
+| C3 | Metric is ROC-AUC | 10 | `metric` names ROC-AUC (`roc_auc`, `auc`, `auroc`) | Not comparable with the reported claim |
 | C4 | Reported value is reproducible | 15 | Recompute ROC-AUC from `test_scores` and true labels; must match to 1e-6 | The number can't be trusted |
 | C5 | Sensible patient-level split | 15 | 15–25% of **patients** in test; share of diseased patients in test within 5 points of the whole cohort (measured per patient, not per visit) | Unrepresentative test set |
 | C6 | Deterministic | 10 | Two runs with seed 0 give identical ids, scores and value | Results can't be reproduced |
