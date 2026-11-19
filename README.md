@@ -39,7 +39,7 @@ Tasks map to the eight leakage types in Kapoor & Narayanan's taxonomy, so covera
 | L1.4 | Duplicates in datasets | [t01_oversample_leak](tasks/t01_oversample_leak) | done |
 | L2 | Model uses features that are not legitimate | [t02_timeseries_cv_leak](tasks/t02_timeseries_cv_leak) | done |
 | L3.1 | Temporal leakage | [t02_timeseries_cv_leak](tasks/t02_timeseries_cv_leak) | done |
-| L3.2 | Non-independence between train and test samples | planned | |
+| L3.2 | Non-independence between train and test samples | [t03_patient_leak](tasks/t03_patient_leak) | done |
 | L3.3 | Sampling bias in test distribution | planned | |
 
 Beyond leakage, later tasks cover unstable training (NaN loss), irreproducibility (unseeded data loaders), and performance bottlenecks.
@@ -52,6 +52,7 @@ Beyond leakage, later tasks cover unstable training (NaN loss), irreproducibilit
 |---|---|---|---|
 | t01_oversample_leak | 100/100 | 10/100 (reports 0.998 accuracy; leaked PR-AUC 1.000) | caught (fails C1) |
 | t02_timeseries_cv_leak | 100/100 (MAE 5.29) | 40/100 (MAE 4.01, at the noise floor) | caught: centred window and same-day rolling mean both fail C2 |
+| t03_patient_leak | 100/100 (ROC-AUC 0.77) | 45/100 (ROC-AUC 0.93; 269 patients in both sets) | caught: last-visit holdout (ROC-AUC 0.96) fails C1 |
 
 ### AI assistant evaluation
 
@@ -71,6 +72,7 @@ make check                                                 # lint, types, tests
 - Datasets are synthetic, chosen so that bugs are controllable and graders deterministic. Real-world data is messier.
 - Automatic checks verify outcomes (no overlap, recomputable metric), not reasoning; written explanations are graded separately.
 - Reference solutions are public, so these tasks suit practice and assistant evaluation, not a held-out leaderboard.
+- Most graders trust the train/test ids a solution reports, so a solver that trains on test data and misreports its ids would pass. Behavioural checks (t02's future-scramble test) catch some cases; agent transcripts are reviewed in the agentic evaluation.
 
 ## Reference
 
