@@ -25,7 +25,7 @@ Every task is a realistic scenario where an ML result is wrong for a subtle reas
 | `grader.py` | Runs a solution and returns a scored report |
 | `data.py` | Deterministic data, no downloads |
 
-**A grader is only trusted if it passes the reference, fails the starter, and also fails tempting partial fixes.** CI enforces all three on every push.
+**A grader is only trusted if it passes the reference, fails the starter, fails tempting partial fixes, and still accepts other honest methods.** CI enforces this on every push.
 
 ## Coverage of the leakage taxonomy
 
@@ -33,7 +33,7 @@ Tasks map to the eight leakage types in Kapoor & Narayanan's taxonomy, so covera
 
 | Type | Leakage | Task | Status |
 |---|---|---|---|
-| L1.1 | No test set (tuning or reporting on the same data) | planned | |
+| L1.1 | No test set (tuning or reporting on the same data) | [t05_test_set_selection](tasks/t05_test_set_selection) | done |
 | L1.2 | Pre-processing on training and test set | [t01_oversample_leak](tasks/t01_oversample_leak) | done |
 | L1.3 | Feature selection on training and test set | [t04_feature_selection_leak](tasks/t04_feature_selection_leak) | done |
 | L1.4 | Duplicates in datasets | [t01_oversample_leak](tasks/t01_oversample_leak) | done |
@@ -54,6 +54,7 @@ Beyond leakage, later tasks cover unstable training (NaN loss), irreproducibilit
 | t02_timeseries_cv_leak | 100/100 (MAE 5.29) | 40/100 (MAE 4.01, at the noise floor) | caught: centred window and same-day rolling mean both fail C2 |
 | t03_patient_leak | 100/100 (ROC-AUC 0.77) | 45/100 (ROC-AUC 0.93; 269 patients in both sets) | caught: last-visit holdout (ROC-AUC 0.96) fails C1 |
 | t04_feature_selection_leak | 100/100 (ROC-AUC 0.73) | 60/100 (ROC-AUC 0.94; **0.92 on random labels**) | caught: constant-score "fix" fails the real-signal floor |
+| t05_test_set_selection | 100/100 (ROC-AUC 0.71) | 60/100 (ROC-AUC 0.74; **0.68 on random labels**) | fair: a second honest method also scores 100/100 |
 
 ### AI assistant evaluation
 

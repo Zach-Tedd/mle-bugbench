@@ -12,7 +12,7 @@ typecheck:
 	uv run mypy src
 
 test:
-	uv run pytest
+	OMP_NUM_THREADS=1 uv run pytest --durations=5
 
 check: lint typecheck test   ## everything CI runs
 
