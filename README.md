@@ -61,6 +61,8 @@ Tasks map to the eight leakage types in Kapoor & Narayanan's taxonomy, so covera
 
 **ChatGPT and Claude fix leakage they can see in the code, and miss leakage that only shows in the data or depends on deployment context.** Given a data preview and the model code, they produced leak-free solutions in 7 of 12 runs; with the data generator's source also visible, 11 of 12.
 
+![Results by condition](docs/media/slide2.png)
+
 | Assistant | realistic | blind | neutral | review |
 |---|---|---|---|---|
 | ChatGPT | 4/6 | 5/6 | 6/6 | 6/6 |
