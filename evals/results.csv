@@ -1,3 +1,13 @@
 assistant,task,condition,score,passed,failed_checks,error
 chatgpt,t01_oversample_leak,neutral,100,True,,
 chatgpt,t01_oversample_leak,review,100,True,,
+chatgpt,t02_timeseries_cv_leak,neutral,100,True,,
+chatgpt,t02_timeseries_cv_leak,review,100,True,,
+chatgpt,t03_patient_leak,neutral,100,True,,
+chatgpt,t03_patient_leak,review,100,True,,
+chatgpt,t04_feature_selection_leak,neutral,100,True,,
+chatgpt,t04_feature_selection_leak,review,100,True,,
+chatgpt,t05_test_set_selection,neutral,100,True,,
+chatgpt,t05_test_set_selection,review,100,True,,
+chatgpt,t06_regional_shift,neutral,100,True,,
+chatgpt,t06_regional_shift,review,100,True,,

@@ -59,6 +59,7 @@ def grade(solution_path: Path) -> Report:
 
     value_matches = False
     recomputed = float("nan")
+    recomputed_patient = float("nan")
     try:
         labels = rows.loc[test_ids, "label"].to_numpy()
         valid = (
@@ -67,8 +68,25 @@ def grade(solution_path: Path) -> Report:
             and len(np.unique(labels)) == 2
         )
         if valid:
+            # Accept ROC-AUC per visit or per patient (mean score of each patient's
+            # visits). Per-patient is the clinically standard unit: each patient counts once.
             recomputed = float(roc_auc_score(labels, scores))
-            value_matches = abs(recomputed - float(out["value"])) < 1e-6
+            per_patient = (
+                pd.DataFrame(
+                    {
+                        "patient": rows.loc[test_ids, "patient_id"].to_numpy(),
+                        "score": scores,
+                        "label": labels,
+                    }
+                )
+                .groupby("patient")
+                .agg(score=("score", "mean"), label=("label", "first"))
+            )
+            recomputed_patient = float(roc_auc_score(per_patient["label"], per_patient["score"]))
+            reported = float(out["value"])
+            value_matches = (
+                min(abs(recomputed - reported), abs(recomputed_patient - reported)) < 1e-6
+            )
     except (KeyError, TypeError, ValueError):
         labels = np.asarray([])
     report.checks.append(
@@ -76,7 +94,8 @@ def grade(solution_path: Path) -> Report:
             "value_matches_recomputed",
             15,
             value_matches,
-            f"reported {float(out['value']):.4f}, recomputed ROC-AUC {recomputed:.6f}",
+            f"reported {float(out['value']):.4f}, recomputed ROC-AUC per visit "
+            f"{recomputed:.6f}, per patient {recomputed_patient:.6f}",
         )
     )
 

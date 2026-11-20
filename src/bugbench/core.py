@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import ModuleType
@@ -20,10 +21,15 @@ METRIC_ALIASES: dict[str, frozenset[str]] = {
 
 
 def metric_is(reported: object, canonical: str) -> bool:
-    """True if `reported` names the same metric as `canonical` (case, '-' and spaces ignored)."""
+    """True if `reported` names the same metric as `canonical`.
+
+    Case, '-' and spaces are ignored, and a level qualifier is allowed:
+    "patient_level_roc_auc" names ROC-AUC computed per patient.
+    """
     if not isinstance(reported, str):
         return False
     name = reported.strip().lower().replace("-", "_").replace(" ", "_")
+    name = re.sub(r"^[a-z]+_level_", "", name)
     return name in METRIC_ALIASES.get(canonical, frozenset({canonical}))
 
 

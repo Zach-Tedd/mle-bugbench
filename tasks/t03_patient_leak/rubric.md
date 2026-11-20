@@ -7,7 +7,7 @@ A solution **passes** only if every automatic criterion passes. Weights show rel
 | C1 | No patient appears in both train and test | 40 | Patients behind `train_ids` and `test_ids` must not intersect, and both sets must be non-empty | The model can recognise a patient's "fingerprint" instead of the disease |
 | C2 | Each test row is scored once | 10 | `test_ids` are unique | Duplicated evidence inflates the metric |
 | C3 | Metric is ROC-AUC | 10 | `metric` names ROC-AUC (`roc_auc`, `auc`, `auroc`) | Not comparable with the reported claim |
-| C4 | Reported value is reproducible | 15 | Recompute ROC-AUC from `test_scores` and true labels; must match to 1e-6 | The number can't be trusted |
+| C4 | Reported value is reproducible | 15 | Recompute ROC-AUC from `test_scores` and true labels, per visit **or** per patient (mean score of each patient's visits); must match one to 1e-6 | The number can't be trusted |
 | C5 | Sensible patient-level split | 15 | 15–25% of **patients** in test; share of diseased patients in test within 5 points of the whole cohort (measured per patient, not per visit) | Unrepresentative test set |
 | C6 | Deterministic | 10 | Two runs with seed 0 give identical ids, scores and value | Results can't be reproduced |
 
@@ -26,6 +26,10 @@ A solution **passes** only if every automatic criterion passes. Weights show rel
 | Last-visit holdout (earlier visits train, last visit tests) | 45/100, fails C1 and C5 | 0.959 | Every test patient's earlier visits are in training |
 
 The last-visit split feels like a time-based split, which makes it a common real-world mistake. It is the most inflated of the three, because **every** test patient has been seen in training.
+
+## Grader history
+
+In the ChatGPT evaluation runs, both answers split by patient correctly, averaged each patient's visits, and reported ROC-AUC **per patient** (`patient_level_roc_auc`, 0.692). That is the clinically standard unit, since each patient counts once. The first grader rejected both: the metric name wasn't recognised, and it recomputed AUC only per visit (0.666). C4 now accepts either level, metric names may carry a level qualifier, and both answers are regression tests in `tests/fixtures/`.
 
 ## Known limitation
 

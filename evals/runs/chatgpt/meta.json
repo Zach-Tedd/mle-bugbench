@@ -1,5 +1,6 @@
 {
   "model": "Not displayed (ChatGPT Free)",
   "interface": "web chat",
-  "date": "2026-11-19"
+  "date": "2026-11-20",
+  "notes": "t02_review.py was saved after the first grading run (file had been left empty); content is the original answer from the same chat."
 }

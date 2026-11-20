@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from bugbench.core import TASKS_DIR, Report
 from bugbench.runner import grade
 
@@ -59,3 +61,11 @@ def test_empty_solution_scores_zero(tmp_path: Path) -> None:
     path.write_text("def run(data, seed=0):\n    return {}\n")
     report = grade(TASK, path)
     assert not report.passed and report.score == 0
+
+
+@pytest.mark.parametrize("name", ["t03_chatgpt_neutral.py", "t03_chatgpt_review.py"])
+def test_patient_level_auc_answers_score_full_marks(name: str) -> None:
+    """Regression: ChatGPT reported 'patient_level_roc_auc' (one score per patient),
+    which the first grader rejected because it only recomputed AUC per visit."""
+    report = grade(TASK, Path(__file__).parent / "fixtures" / name)
+    assert report.passed and report.score == 100

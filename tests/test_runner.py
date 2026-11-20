@@ -20,4 +20,6 @@ def test_metric_aliases_accept_equivalent_names() -> None:
     assert metric_is("mean_absolute_error", "mae")
     assert not metric_is("accuracy", "pr_auc")
     assert not metric_is("roc_auc", "pr_auc")
+    assert metric_is("patient_level_roc_auc", "roc_auc")
+    assert not metric_is("patient_level_accuracy", "roc_auc")
     assert not metric_is(None, "mae")
