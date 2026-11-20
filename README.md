@@ -59,9 +59,16 @@ Tasks map to the eight leakage types in Kapoor & Narayanan's taxonomy, so covera
 
 ### AI assistant evaluation
 
-_In progress:_ do AI coding assistants catch these leaks on their own, or only when asked to review? Each assistant gets every task four times: **realistic** (a data preview and the model code, "improve this model"), **blind** (the data generator's source and the model code), **neutral** (the scenario with its claimed score, "improve this model") and **review** ("find what makes this untrustworthy"). See the [protocol](evals/PROTOCOL.md).
+**ChatGPT and Claude fix leakage they can see in the code, and miss leakage that only shows in the data or depends on deployment context.** Given a data preview and the model code, they produced leak-free solutions in 7 of 12 runs; with the data generator's source also visible, 11 of 12.
 
-A pilot run on t01 found that the original grader scored two correct fixes 65/100: it insisted on the metric name `pr_auc`, rejected retried duplicates kept inside the test set, and compared positive rates on mismatched bases. All graders now accept equivalent metric names, and both pilot answers are regression tests. Grader fairness was checked before any results were collected. Session A then surfaced one more: on t03 ChatGPT reported ROC-AUC per patient, a better practice than the reference's per-visit AUC, and the grader now accepts both.
+| Assistant | realistic | blind | neutral | review |
+|---|---|---|---|---|
+| ChatGPT | 4/6 | 5/6 | 6/6 | 6/6 |
+| Claude | 3/6 | 6/6 | 6/6 | 6/6 |
+
+One run per task and condition (48 runs), so these are case studies, not rates. Five grader flaws were found along the way, each from a correct answer being rejected, and fixed before the final grading.
+
+[Findings](evals/FINDINGS.md) · [Protocol](evals/PROTOCOL.md) · [Review log](evals/REVIEW_LOG.md) · [Raw answers](evals/runs)
 
 ## Run it
 
