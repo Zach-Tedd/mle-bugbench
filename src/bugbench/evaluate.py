@@ -27,7 +27,7 @@ from pathlib import Path
 from bugbench.core import task_dirs
 from bugbench.prompt import CONDITIONS
 
-TIMEOUT_S = 900
+TIMEOUT_S = 3600
 ATTEMPT_DIR = "_attempt"
 
 

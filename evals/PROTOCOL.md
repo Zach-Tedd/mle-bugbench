@@ -38,7 +38,7 @@ All three prompts include the same `data.py`, starter `solution.py` and interfac
 uv run python -m bugbench.evaluate     # writes evals/results.csv and evals/results.md
 ```
 
-Each answer is graded in its own process with a 15-minute limit. A crash or timeout scores 0 and is recorded as an error.
+Each answer is graded in its own process with a 60-minute limit. A crash or timeout scores 0 and is recorded as an error.
 
 ## What this can and can't show
 
@@ -57,3 +57,4 @@ Grading is automatic. Every failure was then reviewed by reading the answer, to 
 | Pilot (t01) | Accept standard metric names (`average_precision`); allow retried duplicates inside the test set; compare positive rates on unique rows | ChatGPT, both conditions |
 | Session A (t03) | Accept ROC-AUC computed per patient | ChatGPT, neutral and review |
 | Session B (t03, t06) | Find the metric name anywhere in a qualified label, in any word order (`roc_auc_patient_level`, `roc_auc_leave_one_county_out`). The Session A rule accepted only a leading qualifier, which matched ChatGPT's wording but not the same idea worded differently | Claude, 4 answers |
+| Session B, realistic (t05) | Time limit per answer raised from 15 to 60 minutes; no grader change. All answers re-graded | ChatGPT's realistic t05 answer is correct (100/100) but searches ~21,000 model fits per run; the grader runs it 5 times, which exceeded 15 minutes on the 4-core evaluation laptop |
