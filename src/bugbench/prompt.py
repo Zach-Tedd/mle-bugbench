@@ -2,9 +2,10 @@
 
     uv run python -m bugbench.prompt t01 neutral | clip.exe   # copy to the Windows clipboard
 
-Two conditions:
-- neutral: context + "improve it". No hint that anything is wrong (how people really ask).
-- review:  context + the task's review instruction ("fix what makes it untrustworthy").
+Three conditions, from least to most guidance:
+- blind:   code only + "improve it". No scenario, no claimed score, docstrings removed.
+- neutral: the scenario (including the claimed score) + "improve it".
+- review:  the scenario + the task's review instruction ("fix what makes it untrustworthy").
 """
 
 from __future__ import annotations
@@ -16,13 +17,18 @@ from pathlib import Path
 
 from bugbench.core import task_dirs
 
-CONDITIONS = ("neutral", "review")
+CONDITIONS = ("blind", "neutral", "review")
 
 NEUTRAL_ASK = (
     "Please improve this model and give me the complete updated solution.py. "
     "Keep the same run() interface described below."
 )
 NEUTRAL_NOTES = "What you changed and why"
+BLIND_ASK = (
+    "Here is our data generator (data.py) and model code (solution.py). "
+    "Please improve the model and give me the complete updated solution.py. "
+    "Keep the same run() interface described below."
+)
 CLOSING = "Return the complete solution.py in a single Python code block."
 
 
@@ -44,28 +50,47 @@ def _sections(task_dir: Path) -> tuple[str, str, str]:
     return context, review, interface
 
 
-def _code_block(name: str, path: Path) -> str:
-    return f"`{name}`:\n\n```python\n{path.read_text(encoding='utf-8').rstrip()}\n```"
+def _strip_module_docstring(code: str) -> str:
+    """Drop a leading module docstring (it may describe the scenario or the claimed score)."""
+    stripped = code.lstrip()
+    if not stripped.startswith('"""'):
+        return code
+    end = stripped.index('"""', 3) + 3
+    return stripped[end:].lstrip("\n")
+
+
+def _code_block(name: str, path: Path, strip_docstring: bool = False) -> str:
+    code = path.read_text(encoding="utf-8")
+    if strip_docstring:
+        code = _strip_module_docstring(code)
+    return f"`{name}`:\n\n```python\n{code.rstrip()}\n```"
 
 
 def build_prompt(task_dir: Path, condition: str) -> str:
     if condition not in CONDITIONS:
         raise ValueError(f"condition must be one of {CONDITIONS}, got {condition!r}")
     context, review, interface = _sections(task_dir)
-    ask = NEUTRAL_ASK if condition == "neutral" else review
-    if condition == "neutral":
+    if condition != "review":
         # The task README describes `notes` as "What was wrong ..."; that would hint at a bug.
         interface = re.sub(
             "what was wrong and what you changed", NEUTRAL_NOTES, interface, flags=re.I
         )
-    parts = [
-        context.replace("starter/solution.py", "solution.py"),
-        ask,
-        interface,
-        _code_block("data.py", task_dir / "data.py"),
-        _code_block("solution.py", task_dir / "starter" / "solution.py"),
-        CLOSING,
+    blind = condition == "blind"
+    code = [
+        _code_block("data.py", task_dir / "data.py", strip_docstring=blind),
+        _code_block("solution.py", task_dir / "starter" / "solution.py", strip_docstring=blind),
     ]
+    if blind:
+        parts = [BLIND_ASK, interface, *code, CLOSING]
+    else:
+        ask = NEUTRAL_ASK if condition == "neutral" else review
+        parts = [
+            context.replace("starter/solution.py", "solution.py"),
+            ask,
+            interface,
+            *code,
+            CLOSING,
+        ]
     return "\n\n".join(parts) + "\n"
 
 

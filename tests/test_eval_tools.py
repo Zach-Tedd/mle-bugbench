@@ -24,6 +24,16 @@ def test_prompts_carry_code_and_differ_only_in_the_ask(task_dir: Path) -> None:
     assert "Review it" in review
 
 
+@pytest.mark.parametrize("task_dir", task_dirs(), ids=lambda d: d.name)
+def test_blind_prompt_has_code_but_no_scenario_or_claim(task_dir: Path) -> None:
+    blind = build_prompt(task_dir, "blind")
+    assert "def load_data" in blind and "def run" in blind
+    context = build_prompt(task_dir, "neutral").split("\n\n")[0]
+    assert context not in blind, "blind prompt must not include the scenario"
+    for cue in ("teammate", "reports", "wants to", "publish", "ship", "wrong", "bug", "leak"):
+        assert cue not in blind.lower(), f"blind prompt contains the cue {cue!r}"
+
+
 def test_unknown_condition_rejected() -> None:
     with pytest.raises(ValueError):
         build_prompt(TASKS_DIR / "t01_oversample_leak", "hint")
