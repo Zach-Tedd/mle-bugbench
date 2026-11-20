@@ -14,7 +14,7 @@ Every failed or errored run is read and classified before results are published.
 | Assistant | Task | First score | Class | Evidence |
 |---|---|---|---|---|
 | ChatGPT | t01 | 20 | Real miss | Removed the oversampling (the bug visible in the starter) but split rows without removing duplicates: 100 duplicate transactions in both train and test. Reported ROC-AUC rather than PR-AUC, so C3 and C4 also fail. |
-| Claude | t01 | 50 | Real miss | Same pattern: fixed oversampling, split rows without deduplicating, 100 shared rows. Its notes state the test set "has no duplicated rows", which is false. |
+| Claude | t01 | 50 | Real miss | Same pattern: fixed oversampling, split rows without deduplicating, 100 shared rows. A comment in its code says the test set "has no duplicated rows", which is false. |
 | Claude | t03 | error | Code failure | Patient-level split is correct, but `df.groupby("patient_id")[BASE]` followed by `g[BASE[0]]` raises `IndexError: Column(s) … already selected`. Reproduced on pandas 2.2.3 and 3.1.1, so not version-specific. |
 | ChatGPT | t05 | error (timeout) | Harness limit, then **pass** | Selection uses training-set cross-validation only (correct). About 21,000 model fits per run; 678 s for the grader's 5 runs on the review machine, over 900 s on the 4-core laptop. 100/100 with no time limit. Time limit raised to 60 minutes for all answers. |
 | ChatGPT | t06 | 50 | Context-dependent | Kept training and validation on Nyeri only ("preserve the original evaluation population"). Same behaviour as its `blind` answer. |
