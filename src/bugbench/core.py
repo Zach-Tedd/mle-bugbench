@@ -11,26 +11,48 @@ from typing import Any
 
 TASKS_DIR = Path(__file__).resolve().parents[2] / "tasks"
 
-# Equivalent names for the same metric. A grader must not fail a correct solution
-# because it used scikit-learn's name for a metric instead of ours.
-METRIC_ALIASES: dict[str, frozenset[str]] = {
-    "pr_auc": frozenset({"pr_auc", "average_precision", "average_precision_score", "ap", "auprc"}),
-    "roc_auc": frozenset({"roc_auc", "roc_auc_score", "auc", "auroc"}),
-    "mae": frozenset({"mae", "mean_absolute_error"}),
+# Names for each metric. "token" names may appear anywhere in a reported label as whole
+# words ("roc_auc_leave_one_county_out", "patient_level_roc_auc"); "exact" names are too
+# short or ambiguous to search for ("auc" also ends "pr_auc"; "ap" is a common word part).
+# A grader must not fail a correct solution for naming or qualifying its metric differently.
+METRIC_NAMES: dict[str, dict[str, frozenset[str]]] = {
+    "pr_auc": {
+        "token": frozenset({"pr_auc", "average_precision", "auprc"}),
+        "exact": frozenset({"ap", "average_precision_score"}),
+    },
+    "roc_auc": {
+        "token": frozenset({"roc_auc", "auroc"}),
+        "exact": frozenset({"auc", "roc_auc_score"}),
+    },
+    "mae": {
+        "token": frozenset({"mae", "mean_absolute_error"}),
+        "exact": frozenset(),
+    },
 }
 
 
-def metric_is(reported: object, canonical: str) -> bool:
-    """True if `reported` names the same metric as `canonical`.
+def _tokens(text: str) -> list[str]:
+    return [t for t in re.split(r"[^a-z0-9]+", text.lower()) if t]
 
-    Case, '-' and spaces are ignored, and a level qualifier is allowed:
-    "patient_level_roc_auc" names ROC-AUC computed per patient.
+
+def _contains(tokens: list[str], phrase: str) -> bool:
+    words = phrase.split("_")
+    return any(tokens[i : i + len(words)] == words for i in range(len(tokens) - len(words) + 1))
+
+
+def metric_is(reported: object, canonical: str) -> bool:
+    """True if `reported` names the same metric as `canonical`, with any qualifier around it.
+
+    Matching is on whole words, so "roc_auc_patient_level" and "patient_level_roc_auc"
+    both name ROC-AUC, while "pr_auc" does not.
     """
     if not isinstance(reported, str):
         return False
-    name = reported.strip().lower().replace("-", "_").replace(" ", "_")
-    name = re.sub(r"^[a-z]+_level_", "", name)
-    return name in METRIC_ALIASES.get(canonical, frozenset({canonical}))
+    tokens = _tokens(reported)
+    names = METRIC_NAMES.get(canonical, {"token": frozenset({canonical}), "exact": frozenset()})
+    if "_".join(tokens) in names["exact"] | names["token"]:
+        return True
+    return any(_contains(tokens, phrase) for phrase in names["token"])
 
 
 @dataclass(frozen=True)

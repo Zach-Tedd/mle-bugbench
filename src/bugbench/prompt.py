@@ -2,8 +2,10 @@
 
     uv run python -m bugbench.prompt t01 neutral | clip.exe   # copy to the Windows clipboard
 
-Three conditions, from least to most guidance:
-- blind:   code only + "improve it". No scenario, no claimed score, docstrings removed.
+Four conditions, from least to most guidance:
+- realistic: a preview of the data (shape, types, first rows, summaries) and the model code,
+             + "improve it". No generator source, no scenario, no claimed score.
+- blind:   the data generator's source and the model code + "improve it". No scenario.
 - neutral: the scenario (including the claimed score) + "improve it".
 - review:  the scenario + the task's review instruction ("fix what makes it untrustworthy").
 """
@@ -11,13 +13,16 @@ Three conditions, from least to most guidance:
 from __future__ import annotations
 
 import argparse
+import ast
 import re
 import sys
 from pathlib import Path
 
-from bugbench.core import task_dirs
+import pandas as pd
 
-CONDITIONS = ("blind", "neutral", "review")
+from bugbench.core import load_module, task_dirs
+
+CONDITIONS = ("realistic", "blind", "neutral", "review")
 
 NEUTRAL_ASK = (
     "Please improve this model and give me the complete updated solution.py. "
@@ -26,6 +31,12 @@ NEUTRAL_ASK = (
 NEUTRAL_NOTES = "What you changed and why"
 BLIND_ASK = (
     "Here is our data generator (data.py) and model code (solution.py). "
+    "Please improve the model and give me the complete updated solution.py. "
+    "Keep the same run() interface described below."
+)
+REALISTIC_ASK = (
+    "Here is a preview of our dataset and our model code (solution.py). "
+    "run() receives the full dataset as a pandas DataFrame. "
     "Please improve the model and give me the complete updated solution.py. "
     "Keep the same run() interface described below."
 )
@@ -66,6 +77,69 @@ def _code_block(name: str, path: Path, strip_docstring: bool = False) -> str:
     return f"`{name}`:\n\n```python\n{code.rstrip()}\n```"
 
 
+def data_preview(task_dir: Path) -> str:
+    """What an engineer sees of the data: size, column types, first rows, summaries.
+    Built from the exact dataset the grader uses (seed 0)."""
+    data: pd.DataFrame = load_module(task_dir / "data.py", f"{task_dir.name}_preview").load_data(0)
+    numeric = data.select_dtypes("number").columns
+    other = [c for c in data.columns if c not in numeric]
+    with pd.option_context(
+        "display.max_columns",
+        12,
+        "display.max_rows",
+        24,
+        "display.width",
+        120,
+        "display.precision",
+        3,
+    ):
+        parts = [
+            f"Dataset preview: {len(data):,} rows x {data.shape[1]:,} columns.",
+            "Column types:\n" + data.dtypes.astype(str).value_counts().to_string(),
+            "First rows:\n" + data.head(8).to_string(max_cols=12),
+            "Numeric summary:\n" + data[numeric].describe().T.to_string(max_rows=24),
+        ]
+        for col in other:
+            counts = data[col].value_counts()
+            if len(counts) <= 12:
+                parts.append(f"Values of `{col}`:\n" + counts.to_string())
+            else:
+                parts.append(
+                    f"`{col}`: {data[col].nunique():,} distinct values, "
+                    f"from {data[col].min()} to {data[col].max()}."
+                )
+        if "label" in data.columns:
+            parts.append("Label counts:\n" + data["label"].value_counts().to_string())
+    return "```text\n" + "\n\n".join(parts) + "\n```"
+
+
+def data_helpers(task_dir: Path) -> str | None:
+    """Helper code from data.py that a solution needs (e.g. t05's candidate_subsets), without
+    the data loader and without constants the helpers don't use. None if there is nothing."""
+    source = (task_dir / "data.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    funcs = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name != "load_data"]
+    if not funcs:
+        return None
+    used = {n.id for f in funcs for n in ast.walk(f) if isinstance(n, ast.Name)}
+    assigns = [n for n in tree.body if isinstance(n, ast.Assign | ast.AnnAssign)]
+    kept: list[ast.stmt] = []
+    changed = True
+    while changed:
+        changed = False
+        for node in assigns:
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            names = {t.id for t in targets if isinstance(t, ast.Name)}
+            if node not in kept and names & used:
+                kept.append(node)
+                used |= {n.id for n in ast.walk(node) if isinstance(n, ast.Name)}
+                changed = True
+    imports = [n for n in tree.body if isinstance(n, ast.Import | ast.ImportFrom)]
+    nodes: list[ast.stmt] = [*imports, *kept, *funcs]
+    keep = sorted(nodes, key=lambda n: n.lineno)
+    return "\n\n".join(ast.get_source_segment(source, n) or "" for n in keep)
+
+
 def build_prompt(task_dir: Path, condition: str) -> str:
     if condition not in CONDITIONS:
         raise ValueError(f"condition must be one of {CONDITIONS}, got {condition!r}")
@@ -75,6 +149,21 @@ def build_prompt(task_dir: Path, condition: str) -> str:
         interface = re.sub(
             "what was wrong and what you changed", NEUTRAL_NOTES, interface, flags=re.I
         )
+    if condition == "realistic":
+        starter = _code_block(
+            "solution.py", task_dir / "starter" / "solution.py", strip_docstring=True
+        )
+        helpers = data_helpers(task_dir)
+        helper_block = (
+            [
+                f"`data.py` (helper functions only; the data loader is not shown):\n\n"
+                f"```python\n{helpers}\n```"
+            ]
+            if helpers
+            else []
+        )
+        parts = [REALISTIC_ASK, interface, data_preview(task_dir), *helper_block, starter, CLOSING]
+        return "\n\n".join(parts) + "\n"
     blind = condition == "blind"
     code = [
         _code_block("data.py", task_dir / "data.py", strip_docstring=blind),

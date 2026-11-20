@@ -55,3 +55,20 @@ def test_evaluate_grades_pass_fail_and_crash(tmp_path: Path) -> None:
     assert results[("t02", "review")].error.startswith("crashed")
     assert (tmp_path / "results.md").exists() and (tmp_path / "results.csv").exists()
     assert not (task / "_attempt").exists()
+
+
+@pytest.mark.parametrize("task_dir", task_dirs(), ids=lambda d: d.name)
+def test_realistic_prompt_shows_data_not_generator(task_dir: Path) -> None:
+    prompt = build_prompt(task_dir, "realistic")
+    assert "Dataset preview" in prompt and "def run" in prompt
+    assert "def load_data" not in prompt, "the generator would reveal how the bug was planted"
+    assert "rng.normal" not in prompt and "binomial" not in prompt
+    for cue in ("teammate", "reports", "wants to", "publish", "ship", "wrong", "bug", "leak"):
+        assert cue not in prompt.lower(), f"realistic prompt contains the cue {cue!r}"
+
+
+def test_realistic_keeps_needed_helpers_but_not_planted_constants() -> None:
+    t05 = build_prompt(TASKS_DIR / "t05_test_set_selection", "realistic")
+    assert "def candidate_subsets" in t05
+    t04 = build_prompt(TASKS_DIR / "t04_feature_selection_leak", "realistic")
+    assert "N_INFORMATIVE" not in t04
